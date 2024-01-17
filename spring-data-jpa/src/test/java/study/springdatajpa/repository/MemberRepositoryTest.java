@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import study.springdatajpa.dto.MemberDto;
 import study.springdatajpa.entity.Member;
@@ -11,6 +15,7 @@ import study.springdatajpa.entity.Team;
 
 import javax.transaction.Transactional;
 
+import java.awt.print.Pageable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -157,5 +162,43 @@ class MemberRepositoryTest {
 
          List<Member> result = memberRepository.findListByUsername("abcdefg");
          System.out.println("result = " + result.size()); // 0
+    }
+
+    @Test
+    public void paging() {
+        //given
+        memberRepository.save(new Member("member1",10));
+        memberRepository.save(new Member("member2",10));
+        memberRepository.save(new Member("member3",10));
+        memberRepository.save(new Member("member4",10));
+        memberRepository.save(new Member("member5",10));
+
+        int age =10;
+        PageRequest pageRequest = PageRequest.of(0,3, Sort.by(Sort.Direction.DESC,"username"));
+        //when
+        Page<Member> page = memberRepository.findByAge(age,pageRequest); // 반환타입을 Page로 선언하면 토탈 카운트 쿼리까지 같이 실ㅂ
+        Page<MemberDto> toMap = page.map(m -> new MemberDto(m.getId(), m.getUsername(), null));
+
+        // Slice<Member> slicePage = memberRepository.findSliceByAge(age,pageRequest); // slice는 count 쿼리를 날리지 않는다.
+
+        List<Member> content = page.getContent();
+        long totalElements = page.getTotalElements();
+
+        for(Member member : content) {
+            System.out.println("member = " + member);
+        }
+        System.out.println("totalElements = " + totalElements);
+
+        Assertions.assertEquals(content.size(),3);
+        Assertions.assertEquals(page.getTotalElements(),5);
+        Assertions.assertEquals(page.getNumber(),0);
+        Assertions.assertEquals(page.getTotalPages(),2);
+        Assertions.assertEquals(page.isFirst(),true);
+        Assertions.assertEquals(page.hasNext(),true);
+
+//        Assertions.assertEquals(content.size(),3);
+//        Assertions.assertEquals(slicePage.getNumber(),0);
+//        Assertions.assertEquals(slicePage.isFirst(),true);
+//        Assertions.assertEquals(slicePage.hasNext(),true);
     }
 }
