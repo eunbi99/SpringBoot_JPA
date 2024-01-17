@@ -10,6 +10,10 @@ import javax.persistence.*;
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(of = {"id","username","age"}) // 연관관계 필드인 team은 추가 하지않는 것이 좋다.
+@NamedQuery(
+        name ="Member.findByUsername",
+        query ="select m from Member m where m.username= :username"
+)
 public class Member {
 
     @Id @GeneratedValue
@@ -26,6 +30,10 @@ public class Member {
         this.username = username;
     }
 
+    public Member(String username, int age) {
+        this.username = username;
+        this.age = age;
+    }
     public Member(String username, int age, Team team) {
         this.username = username;
         this.age = age;
